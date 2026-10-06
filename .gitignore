@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+
+# IDE
+.vscode/
+.idea/
+
+# Model weights and datasets (large files: download, don't commit)
+*.pt
+*.onnx
+datasets/*
+!datasets/.gitkeep
+runs/
+
+# Generated outputs
+outputs/*
+!outputs/.gitkeep
+*.mp4
+*.avi
+
+# Local calibration (machine/camera specific)
+calibration.yaml

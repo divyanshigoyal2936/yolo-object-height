@@ -1,0 +1,27 @@
+# Default settings. Command-line flags override these.
+# calibration.yaml (created by scripts/calibrate.py) overrides floor_y / pixel_to_cm.
+
+model:
+  path: models/yolo11n-seg.pt
+  imgsz: 640
+  conf: 0.35        # demo threshold (evaluation uses its own, lower threshold)
+  iou: 0.5          # NMS IoU: lower = fewer overlapping boxes, higher = keeps touching objects
+  device: null      # null = auto, or "cpu", "0" (first GPU)
+  max_det: 100
+
+camera:
+  width: 640
+  height: 480
+
+height:
+  floor_y: 430        # y pixel of the floor line in the image
+  pixel_to_cm: 0.25   # centimetres per pixel at the floor/object depth
+
+display:
+  show_masks: true
+  mask_alpha: 0.35
+  draw_floor_links: true
+
+fps:
+  window: 30          # frames used for the real-time FPS
+  warmup_frames: 10   # skipped when computing the average FPS
