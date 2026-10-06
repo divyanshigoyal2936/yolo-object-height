@@ -1,122 +1,189 @@
-# Real-Time Multi-Instance Object Detection, Counting & Height-from-Floor Estimation
+# 🎯 YOLO Object Height
 
-Python · OpenCV · Ultralytics YOLO11-seg
+**Real-time object detection, counting & height-from-floor estimation**
 
-A webcam/video pipeline that detects every instance of the object classes you ask for
-(e.g. 5 apples in a basket), draws a mask + box + confidence per instance, counts them,
-estimates each object's distance above a calibrated floor line, and reports FPS.
-A separate script evaluates the model with mAP@50 and mAP@50:95 on an annotated dataset.
+![Python](https://img.shields.io/badge/Python-3.10+-blue?logo=python&logoColor=white)
+![OpenCV](https://img.shields.io/badge/OpenCV-4.9+-green?logo=opencv&logoColor=white)
+![YOLO11](https://img.shields.io/badge/YOLO11--seg-Ultralytics-orange)
 
-## Features
-- Multi-instance detection and per-class counting (separate mask, box, ID and confidence per instance)
-- Optional persistent IDs with ByteTrack (`--track`)
-- Real-time FPS, average FPS (warm-up excluded) and detection latency overlay
-- Distance-from-floor estimation (original feature) with interactive calibration
-- Class-name validation with suggestions ("aple" -> "apple")
-- Optional CSV logging and annotated-video export
-- Reproducible benchmark (`scripts/benchmark.py`) and evaluation (`scripts/evaluate.py`)
+Show an apple (or 5 of them) to your webcam. The system finds **every** instance, outlines it,
+counts it, and tells you roughly **how far above the floor** it is.
 
-## Structure
-```
-.
-├── main.py               # run the application
-├── config.yaml           # model / camera / calibration / display settings
-├── requirements.txt
-├── src/
-│   ├── detector.py       # YOLO wrapper, Detection dataclass
-│   ├── height_estimator.py
-│   ├── fps_meter.py
-│   ├── visualizer.py
-│   ├── logger.py
-│   ├── gui.py            # tkinter input window
-│   └── config.py
-├── scripts/
-│   ├── evaluate.py       # precision / recall / mAP@50 / mAP@50:95
-│   ├── benchmark.py      # FPS / latency measurement
-│   └── calibrate.py      # floor line + cm-per-pixel
-├── models/               # put yolo11n-seg.pt here (git-ignored)
-├── datasets/             # annotated datasets (git-ignored)
-├── results/              # evaluation / benchmark outputs
-└── outputs/              # screenshots, videos, CSV logs
-```
+---
 
-## Setup
+## 📸 Demo
+<!-- Add a screenshot or GIF: ![demo](docs/demo.png) -->
+
+---
+
+## ✨ What it does
+
+| | Feature | Details |
+|---|---|---|
+| 🍎 | **Multi-instance detection** | Separate mask, box, ID and confidence for each object |
+| 🔢 | **Counting** | Live count per selected class |
+| 📏 | **Height from floor** | Pixel gap to a calibrated floor line, converted to cm |
+| ⚡ | **FPS monitor** | Real-time FPS, average FPS and detection latency |
+| 🧭 | **Tracking (optional)** | Stable IDs with ByteTrack (`--track`) |
+| 📝 | **Logging (optional)** | CSV log of every detection, annotated video export |
+| ✅ | **Smart input** | Typos are caught: "aple" → *Did you mean apple?* |
+| 📊 | **Evaluation** | mAP@50, mAP@50:95, precision, recall |
+
+---
+
+## 🚀 Quick start
+
 ```bash
+# 1️⃣ Install
 python -m venv .venv
-.venv\Scripts\activate          # Windows   (Linux/macOS: source .venv/bin/activate)
+.venv\Scripts\activate            # Linux/macOS: source .venv/bin/activate
 pip install -r requirements.txt
-```
-Place `yolo11n-seg.pt` in `models/` (or let Ultralytics download it on first run).
-Linux only: `sudo apt install python3-tk` for the GUI.
 
-## Run
-```bash
-python main.py                                    # GUI asks for object names
-python main.py --objects apple                    # no GUI
-python main.py --objects apple,orange --track
-python main.py --objects apple --source demo.mp4 --save-video outputs/out.mp4 --log-csv outputs/log.csv
+# 2️⃣ Run
+python main.py --objects apple
 ```
-Keys: `Q` quit, `S` screenshot, `M` toggle masks.
-Object names must be COCO class names for the default model (`apple`, `cup`, `cell phone`, `person` ...).
 
-## Calibrate height estimation
+> 💡 Weights: put `yolo11n-seg.pt` in `models/` (downloaded automatically on first run if missing).
+> 🐧 Linux only: `sudo apt install python3-tk` for the GUI.
+
+---
+
+## ▶️ Usage
+
+| Goal | Command |
+|---|---|
+| Use the input window | `python main.py` |
+| One object | `python main.py --objects apple` |
+| Several objects | `python main.py --objects apple,cup,person` |
+| Names with spaces | `python main.py --objects "cell phone",laptop` |
+| Fewer false detections | `python main.py --objects apple --conf 0.5` |
+| Persistent IDs | `python main.py --objects person --track` |
+| Video file + save output | `python main.py --objects apple --source demo.mp4 --save-video outputs/out.mp4` |
+| Log detections | `python main.py --objects apple --log-csv outputs/log.csv` |
+
+⌨️ **Keys:** `Q` quit · `S` screenshot · `M` toggle masks
+
+🏷️ Object names are COCO classes (`apple`, `cup`, `bottle`, `cell phone`, `person`, ...).
+
+---
+
+## 📐 Calibrate the height estimate
+
+Do this once, with the camera in its final fixed position.
+
 ```bash
 python scripts/calibrate.py
 ```
-Freeze a frame, click the floor line, click both ends of a known length (e.g. ruler on the floor),
-type its length in cm. Values go to `calibration.yaml`. Keep the camera fixed afterwards.
-The estimate is approximate: it assumes a fixed, level camera and objects at about the same depth as the reference.
 
-## Benchmark FPS
+1. Press **SPACE** to freeze a frame
+2. Click the **floor line**
+3. Click both ends of a **known length** (e.g. a ruler on the floor)
+4. Type the real length in cm
+
+Saved to `calibration.yaml` automatically.
+
+> ⚠️ The result is an **approximation**: it assumes a fixed, level camera and objects at about the same depth as the reference.
+
+---
+
+## ⏱️ Benchmark FPS
+
 ```bash
 python scripts/benchmark.py --source 0 --frames 300 --classes apple
-python scripts/benchmark.py --source demo.mp4 --device cpu
 ```
-Writes `results/benchmark.json` (hardware, resolution, avg/median FPS, p95 latency).
 
-## Evaluate (mAP)
-Requires a labelled dataset in YOLO segmentation format with a `data.yaml`.
+Saves `results/benchmark.json` with your hardware, resolution, average/median FPS and p95 latency.
+
+---
+
+## 📊 Evaluate accuracy (mAP)
+
+You need a labelled dataset in **YOLO segmentation format** (with a `data.yaml`).
 
 ```bash
-python scripts/evaluate.py --model models/yolo11n-seg.pt --data datasets/<name>/data.yaml --split test
+# Optional: fine-tune on your own images
+yolo segment train data=datasets/<name>/data.yaml model=yolo11n-seg.pt epochs=50 imgsz=640
+
+# Evaluate on the TEST split
+python scripts/evaluate.py --model runs/segment/train/weights/best.pt --data datasets/<name>/data.yaml --split test
 ```
-Writes `results/eval/metrics.json`, `metrics.md`, PR/F1 curves and the confusion matrix.
 
-Choose the dataset carefully:
-1. **Fine-tune on your own data (recommended for a resume).** Annotate ~150-300 images of your target
-   objects (Roboflow / CVAT, export "YOLO segmentation"), split train/val/test, then
-   `yolo segment train data=datasets/<name>/data.yaml model=yolo11n-seg.pt epochs=50 imgsz=640`
-   and evaluate `runs/segment/train/weights/best.pt` on the **test** split.
-   Also report the pretrained model on the same test set for a before/after comparison
-   (class IDs must match, see 3).
-2. **COCO val2017 subset.** Pretrained weights were not trained on val2017, so this is a fair test of the
-   pretrained model. Do not use coco128-seg / coco8-seg for reporting: they overlap the training data.
-3. **Class-ID warning.** A COCO-pretrained model uses COCO IDs (apple = 47). A custom single-class dataset
-   uses ID 0, so evaluating the pretrained model on it directly gives wrong numbers. Either fine-tune, or
-   write the dataset labels with COCO IDs.
+Outputs `results/eval/metrics.json`, `metrics.md`, PR/F1 curves and the confusion matrix.
 
-## Reporting results (resume / report)
-- Always state: model, dataset name + number of test images, split, image size, conf/IoU used, hardware.
-- **mAP@50 / mAP@50:95**: report both, for boxes and masks (`metrics.md` has both). mAP@50:95 is
-  the mean AP over IoU 0.50 to 0.95 (step 0.05); mAP@50 is at IoU 0.50 only.
-- **Precision / recall**: Ultralytics reports them at the confidence threshold that maximises F1, not at
-  your demo threshold of 0.35. Say so.
-- **Evaluation threshold**: mAP is computed with a very low conf (0.001); the demo uses 0.35.
-  These are different settings, so don't mix their numbers.
-- **FPS**: report the `benchmark.py` result (average and median over >= 300 frames after warm-up) plus the hardware.
-  Say whether it is detection-only or end-to-end (with drawing/display). Webcam FPS can be capped by the camera.
-- Never report training/validation-set numbers as test results. Don't round up.
+| ⚠️ Watch out | Why |
+|---|---|
+| Class-ID mismatch | COCO uses apple = 47, a custom dataset uses 0. Evaluating a COCO model on it directly gives wrong numbers. |
+| Don't use `coco8-seg` / `coco128-seg` | They overlap the pretrained model's training data. |
+| Report the **test** split | Never report training or validation numbers as test results. |
 
-Example wording (replace placeholders with YOUR measured values):
-> Fine-tuned YOLO11n-seg on a custom N-image apple dataset; on a held-out test set of M images,
-> achieved mAP@50 = X and mAP@50:95 = Y (masks), precision P / recall R. Runs at Z FPS
-> (avg, 640 px, <hardware>) with real-time multi-instance counting.
+---
 
-## Limitations
-- Height/distance is a 2D pixel-to-cm approximation, not true 3D depth.
-- Heavily overlapping objects may merge or be missed; tune `model.iou` and `model.conf` in `config.yaml`.
+## 📈 Results
 
-## Troubleshooting
-- **Windows webcam error `MSMF ... can't grab frame`**: close other apps using the camera. The code already opens
-  webcams with the DirectShow backend and retries dropped frames; try `--source 1` if you have several cameras.
-- **Wrong cm values**: run `python scripts/calibrate.py` once with the camera in its final position.
+> Fill in **only values you measured**.
+
+| Metric | Value |
+|---|---|
+| 💻 Hardware | `<CPU / GPU>` |
+| 🖼️ Input resolution | `<e.g. 640x480>` |
+| ⚡ Average FPS (300 frames) | `<X>` |
+| 🗂️ Test set | `<dataset name, M images>` |
+| 🎯 mAP@50 (mask) | `<X>` |
+| 🎯 mAP@50:95 (mask) | `<X>` |
+| ✅ Precision / Recall | `<P> / <R>` |
+
+**📝 How to read the metrics**
+- **mAP@50**: average precision at IoU 0.50
+- **mAP@50:95**: average over IoU 0.50 to 0.95 (step 0.05), stricter
+- **Precision / Recall**: measured at the confidence that maximises F1, not at the demo threshold (0.35)
+- **mAP** is computed at conf 0.001; the demo uses 0.35. Don't mix the two.
+- **FPS**: `avg_fps` is end-to-end (capture + detection); `detect_only_fps` is detection alone
+
+---
+
+## 🗂️ Project structure
+
+```
+📦 yolo-object-height
+├── 📄 main.py                 ← run the app
+├── ⚙️ config.yaml             ← settings
+├── 📄 requirements.txt
+├── 📁 src/
+│   ├── detector.py            ← YOLO wrapper
+│   ├── height_estimator.py    ← pixel → cm distance
+│   ├── fps_meter.py           ← FPS / latency
+│   ├── visualizer.py          ← drawing
+│   ├── logger.py              ← CSV log
+│   ├── gui.py                 ← input window
+│   └── config.py
+├── 📁 scripts/
+│   ├── calibrate.py           ← floor line + cm per pixel
+│   ├── benchmark.py           ← FPS measurement
+│   └── evaluate.py            ← mAP / precision / recall
+├── 📁 models/                 ← weights (git-ignored)
+├── 📁 datasets/               ← your data (git-ignored)
+├── 📁 results/                ← benchmark & eval outputs
+└── 📁 outputs/                ← screenshots, videos, logs
+```
+
+---
+
+## 🛠️ Troubleshooting
+
+| Problem | Fix |
+|---|---|
+| 📷 `MSMF ... can't grab frame` (Windows) | Close other apps using the camera. The code already uses DirectShow and retries dropped frames. Try `--source 1` if you have several cameras. |
+| 📏 cm values look wrong | Run `python scripts/calibrate.py` |
+| ❓ "not a class of this model" | Use a COCO class name; check the suggestion printed |
+
+---
+
+## ⚠️ Limitations
+- Height is a **2D pixel-to-cm approximation**, not true 3D depth.
+- Heavily overlapping objects may merge or be missed. Tune `model.iou` and `model.conf` in `config.yaml`.
+- The default model knows only the **80 COCO classes**. Other objects need a fine-tuned model.
+
+---
+
+## 🧰 Tech stack
+Python · OpenCV · Ultralytics YOLO11 (instance segmentation) · PyTorch · NumPy · Tkinter · YAML
