@@ -5,6 +5,9 @@
 ![Python](https://img.shields.io/badge/Python-3.10+-blue?logo=python&logoColor=white)
 ![OpenCV](https://img.shields.io/badge/OpenCV-4.9+-green?logo=opencv&logoColor=white)
 ![YOLO11](https://img.shields.io/badge/YOLO11--seg-Ultralytics-orange)
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://share.streamlit.io)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![YOLOv11](https://img.shields.io/badge/YOLO-11-yellow.svg)](https://docs.ultralytics.com/)
 
 Show an apple (or 5 of them) to your webcam. The system finds **every** instance, outlines it,
 counts it, and tells you roughly **how far above the floor** it is.
