@@ -1,3 +1,123 @@
+# Real-Time Multi-Instance Object Detection & Height Estimation
+
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://share.streamlit.io)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![YOLOv11](https://img.shields.io/badge/Ultralytics-YOLO11-00FFFF.svg)](https://docs.ultralytics.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+
+A computer vision pipeline built with Python, OpenCV, and Ultralytics YOLO11-seg. It detects and segments multiple instances of target object classes, counts them in real time, and calculates each object's vertical distance from a calibrated floor baseline. Includes both an interactive Streamlit web application and an OpenCV live-feed pipeline with ByteTrack support.
+
+---
+
+## Features
+
+- **Multi-Instance Segmentation & Counting:** Generates instance masks, bounding boxes, class labels, and per-instance confidence scores.
+- **Height-from-Floor Estimation:** Approximates real-world distance ($cm$) above a calibrated ground line using pixel-to-metric scaling.
+- **Interactive Web App (`app.py`):** Browser-based UI powered by Streamlit for image upload, custom class filtering, and dynamic calibration adjustments.
+- **Real-Time Webcam Pipeline (`main.py`):** Desktop application with HUD overlay displaying live FPS, warmup-excluded average FPS, and detection latency.
+- **Persistent Object Tracking:** Optional ByteTrack integration (`--track`) to preserve IDs across frames.
+- **Evaluation & Benchmarking:** Built-in evaluation scripts for computing mAP@50, mAP@50:95, precision-recall curves, and latency benchmarks.
+
+---
+
+## Project Structure
+
+Project Structure
+
+yolo-object-height/ ├── app.py # Streamlit web application (cloud/browser deployment) ├── main.py # Core CLI & webcam processing pipeline ├── config.yaml # Camera, model, calibration, and HUD configuration ├── requirements.txt # Project dependencies ├── .streamlit/ │ └── config.toml # Streamlit UI theme and server settings ├── src/ │ ├── detector.py # YOLO11-seg inference wrapper & dataclass │ ├── height_estimator.py # Pixel-to-centimeter vertical projection logic │ ├── visualizer.py # OpenCV annotation routines (masks, boxes, HUD) │ ├── fps_meter.py # Frame rate and latency tracking │ ├── logger.py # CSV detection logger │ ├── gui.py # Tkinter class selection dialog │ └── config.py # YAML configuration loader ├── scripts/ │ ├── calibrate.py # Interactive 2-click floor line & scale calibration │ ├── benchmark.py # Hardware FPS and p95 latency benchmark │ └── evaluate.py # mAP@50 and mAP@50:95 evaluation on annotated datasets ├── models/ # Model weight directory (git-ignored) └── outputs/ # Captured frames, video exports, and CSV logs
+
+---
+## Installation
+### 1. Clone the repository
+
+git clone https://github.com/divyanshigoyal2936/yolo-object-height.git
+cd yolo-object-height
+2. Set up a virtual environment
+
+# Windows
+python -m venv .venv
+.venv\Scripts\activate
+# Linux / macOS
+python3 -m venv .venv
+source .venv/bin/activate
+3. Install dependencies
+
+pip install -r requirements.txt
+
+Model Weights: The default model yolo11n-seg.pt will automatically download from Ultralytics on your first run. Alternatively, you can place it manually inside the models/ directory.
+
+Usage
+Option A: Interactive Web App (Streamlit)
+
+Launch the browser UI to test detections and height calculations on images:
+
+
+streamlit run app.py
+Option B: Real-Time Webcam / Video Pipeline (CLI)
+
+Run the desktop pipeline with your default webcam:
+
+
+# Opens Tkinter prompt to select target objects
+python main.py
+# Specify target classes directly (comma-separated COCO classes)
+python main.py --objects person,bottle,chair
+# Enable ByteTrack persistent tracking
+python main.py --objects person --track
+# Process a video file and save the annotated output
+python main.py --objects cup,laptop --source sample.mp4 --save-video outputs/annotated.mp4 --log-csv outputs/log.csv
+
+Keyboard Shortcuts during live stream:
+
+Q or ESC: Quit pipeline
+S: Save high-resolution screenshot to outputs/
+M: Toggle segmentation mask overlay on/off
+Floor Calibration
+
+Height estimation requires setting the baseline floor position and pixel-to-centimeter scale:
+
+
+python scripts/calibrate.py
+A reference frame will open.
+Click on the floor level to define floor_y.
+Click two reference points of known distance (e.g., a 30 cm ruler placed vertically or on the floor) and input the length.
+Settings are automatically saved to calibration.yaml and loaded during runtime.
+Benchmarking & Evaluation
+Benchmark Runtime Performance
+
+Measures median FPS, average FPS, and p95 latency across a fixed frame count:
+
+
+python scripts/benchmark.py --source 0 --frames 300 --classes person
+
+Results are exported to results/benchmark.json.
+
+Model Evaluation (mAP)
+
+Evaluate segmentation and detection performance against a YOLO-format annotated test set:
+
+
+python scripts/evaluate.py --model models/yolo11n-seg.pt --data datasets/custom/data.yaml --split test
+
+Outputs validation metrics to results/eval/metrics.json along with PR and F1 curves.
+
+Limitations
+Geometric Approximation: Ground height calculation uses a 2D planar projection. For accurate metric readings, the camera angle must remain fixed and objects should be situated at a similar focal plane as the calibration reference.
+Occlusion: Dense clusters of overlapping items may cause merged segmentation polygons. Adjust iou and conf thresholds in config.yaml to optimize for specific scenes.
+License
+
+This project is licensed under the MIT License.
+
+
+
+
+
+
+
+
+
+
+
 # 🎯 YOLO Object Height
 
 **Real-time object detection, counting & height-from-floor estimation**
