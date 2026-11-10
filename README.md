@@ -148,6 +148,7 @@ Outputs `results/eval/metrics.json`, `metrics.md`, PR/F1 curves and the confusio
 ```
 📦 yolo-object-height
 ├── 📄 main.py                 ← run the app
+├── app.py                 streamlit web application
 ├── ⚙️ config.yaml             ← settings
 ├── 📄 requirements.txt
 ├── 📁 src/
