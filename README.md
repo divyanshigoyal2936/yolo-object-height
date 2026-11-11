@@ -6,7 +6,7 @@
 ![Python](https://img.shields.io/badge/Python-3.10+-blue?logo=python&logoColor=white)
 ![OpenCV](https://img.shields.io/badge/OpenCV-4.9+-green?logo=opencv&logoColor=white)
 ![YOLO11](https://img.shields.io/badge/YOLO11--seg-Ultralytics-orange)
-[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://share.streamlit.io)
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://yolo-object-height.streamlit.app/)
 
 
 Show an apple (or 5 of them) to your webcam. The system finds **every** instance, outlines it,
